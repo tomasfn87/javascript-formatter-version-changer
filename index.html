@@ -35,6 +35,8 @@
       --input-bg: #3c3c3c;
       --accent-color: #0e639c;
       --accent-hover: #1177bb;
+      --gtm-banner-bg: #1c2d3d;
+      --gtm-banner-border: #0e639c;
       --code-font: 'Fira Code', monospace;
     }
 
@@ -47,17 +49,86 @@
       --input-bg: #ffffff;
       --accent-color: #007acc;
       --accent-hover: #005999;
+      --gtm-banner-bg: #e6f3ff;
+      --gtm-banner-border: #99ccff;
     }
 
     body { background-color: var(--bg-page); color: var(--text-main); padding: 20px; transition: background-color 0.3s, color 0.3s; }
-    h1 { margin-bottom: 5px; color: #61dafb; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
-    body.light-mode h1 { color: #007acc; }
-    .subtitle { margin-bottom: 20px; color: var(--text-muted); font-size: 0.9rem; }
 
-    .container { display: grid; grid-template-columns: 380px 1fr; gap: 20px; height: calc(100vh - 100px); }
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .header-title-box h1 { color: #61dafb; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    body.light-mode .header-title-box h1 { color: #007acc; }
+    .subtitle { color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Banner em Destaque no Topo para o Switch do GTM */
+    .gtm-top-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--gtm-banner-bg);
+      border: 1px solid var(--gtm-banner-border);
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .gtm-top-bar i {
+      font-size: 1.2rem;
+      color: #61dafb;
+    }
+    body.light-mode .gtm-top-bar i { color: var(--accent-color); }
+
+    /* Toggle Switch Stylings */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 22px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #555;
+      transition: .3s;
+      border-radius: 22px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--accent-color); }
+    input:checked + .slider:before { transform: translateX(22px); }
+
+    .gtm-label {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .container { display: grid; grid-template-columns: 380px 1fr; gap: 20px; height: calc(100vh - 130px); }
 
     .sidebar { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 15px; overflow-y: auto; transition: background 0.3s; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
+
     .section-title { font-size: 0.92rem; color: var(--text-main); margin-top: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
     .section-title i { color: #61dafb; width: 16px; text-align: center; }
     body.light-mode .section-title i { color: var(--accent-color); }
@@ -134,7 +205,7 @@
     }
 
     .editor-section { display: flex; flex-direction: column; gap: 15px; height: 100%; }
-    .status-bar { padding: 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 500; display: none; }
+    .status-bar { padding: 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 500; display: none; white-space: pre-wrap; }
     .status-bar.success { background: #1b4b27; color: #85e89d; border: 1px solid #28a745; display: block; }
     .status-bar.error { background: #4b1b1b; color: #ffd1d1; border: 1px solid #dc3545; display: block; }
     .status-bar.warning { background: #4b3e1b; color: #ffe89d; border: 1px solid #ffc107; display: block; }
@@ -169,8 +240,22 @@
 </head>
 <body>
 
-  <h1><i class="fa-solid fa-code"></i> JS Beautifier & Version Changer</h1>
-  <div class="subtitle">Otimizado para Scripts do Google Tag Manager (GTM) e aplicações Web</div>
+  <div class="header-container">
+    <div class="header-title-box">
+      <h1><i class="fa-solid fa-code"></i> JS Beautifier & Version Changer</h1>
+      <div class="subtitle">Otimizado para Scripts do Google Tag Manager (GTM) e aplicações Web</div>
+    </div>
+
+    <!-- Botão ON / OFF do GTM no Topo em Destaque -->
+    <label class="gtm-top-bar" for="gtmMode">
+      <i class="fa-solid fa-tags"></i>
+      <span class="gtm-label">GTM JavaScript Mode</span>
+      <span class="switch">
+        <input type="checkbox" id="gtmMode" checked>
+        <span class="slider"></span>
+      </span>
+    </label>
+  </div>
 
   <div class="container">
     <div class="sidebar">
@@ -541,19 +626,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      const defaultCode = `var idGTM = 'GTM-XXXXX';
-var contador = 0;
+      const defaultCode = `function() {
+  var test = {{tester}};
+  var idGTM = 'GTM-XXXXX';
+  var contador = 0;
 
-function processarGTM() {
   if (contador === 0) {
     contador = 1;
   }
 
-  for (var i = 0; i < 3; i++) {
-    console.log('Iteração: ' + i);
-  }
-
-  return idGTM + '_' + contador;
+  return test + '_' + idGTM;
 }`;
 
       inputEditor = CodeMirror.fromTextArea(document.getElementById('inputCode'), {
@@ -630,6 +712,56 @@ function processarGTM() {
       }
     }
 
+    function sanitizeGTMInput(code) {
+      const gtmVars = [];
+      let processedCode = code;
+
+      // 1. Substituir variáveis GTM {{var}} por identificadores válidos
+      processedCode = processedCode.replace(/\{\{\s*([\w\s-]+?)\s*\}\}/g, (match, p1) => {
+        const placeholder = `__GTM_VAR_${gtmVars.length}__`;
+        gtmVars.push({ placeholder, original: match });
+        return placeholder;
+      });
+
+      // 2. Verificar se inicia com função anônima e envolver com ()
+      let isWrappedAnonFunc = false;
+      const trimmed = processedCode.trim();
+      if (/^function\s*\(/i.test(trimmed)) {
+        processedCode = `(${trimmed})`;
+        isWrappedAnonFunc = true;
+      }
+
+      return { processedCode, gtmVars, isWrappedAnonFunc };
+    }
+
+    function restoreGTMOutput(code, gtmVars, isWrappedAnonFunc) {
+      let restoredCode = code;
+
+      // 1. Restaurar variáveis {{var}}
+      for (const item of gtmVars) {
+        restoredCode = restoredCode.split(item.placeholder).join(item.original);
+      }
+
+      // 2. Remover parênteses externos se foi envolvido temporariamente
+      if (isWrappedAnonFunc) {
+        restoredCode = restoredCode.trim();
+
+        if (restoredCode.startsWith(';')) {
+          restoredCode = restoredCode.slice(1).trim();
+        }
+
+        if (restoredCode.startsWith('(') && (restoredCode.endsWith(');') || restoredCode.endsWith(')'))) {
+          const hasEndingSemicolon = restoredCode.endsWith(';');
+          restoredCode = restoredCode.slice(1, hasEndingSemicolon ? -2 : -1).trim();
+          if (hasEndingSemicolon) {
+            restoredCode += ';';
+          }
+        }
+      }
+
+      return restoredCode;
+    }
+
     async function processJavaScript() {
       const rawCode = inputEditor.getValue();
 
@@ -639,10 +771,27 @@ function processarGTM() {
         return;
       }
 
+      const isGtmMode = document.getElementById('gtmMode').checked;
+
+      let codeToProcess = rawCode;
+      let gtmVars = [];
+      let isWrappedAnonFunc = false;
+
+      if (isGtmMode) {
+        const sanitized = sanitizeGTMInput(rawCode);
+        codeToProcess = sanitized.processedCode;
+        gtmVars = sanitized.gtmVars;
+        isWrappedAnonFunc = sanitized.isWrappedAnonFunc;
+      }
+
       try {
-        Babel.transform(rawCode, { presets: [] });
+        Babel.transform(codeToProcess, { presets: [] });
       } catch (err) {
-        showStatus(`Sintaxe Inválida! Corrija os erros antes de formatar:\n${err.message}`, 'error');
+        let msg = err.message;
+        if (isGtmMode) {
+          msg += '\n\nNota: O modo GTM JavaScript está ATIVADO no topo.';
+        }
+        showStatus(`Sintaxe Inválida! Corrija os erros antes de formatar:\n${msg}`, 'error');
         outputEditor.setValue('');
         return;
       }
@@ -671,7 +820,7 @@ function processarGTM() {
 
       babelPlugins.push(babelPluginRemoveUnderscorePrefixes);
 
-      let transformedCode = rawCode;
+      let transformedCode = codeToProcess;
 
       try {
         const presets = [];
@@ -681,7 +830,7 @@ function processarGTM() {
           babelPlugins.push('transform-property-literals', 'transform-member-expression-literals');
         }
 
-        const babelResult = Babel.transform(rawCode, {
+        const babelResult = Babel.transform(codeToProcess, {
           presets: presets,
           plugins: babelPlugins
         });
@@ -718,6 +867,10 @@ function processarGTM() {
 
         if (maxOneEmptyLine) {
           finalCode = finalCode.replace(/\n\s*\n\s*\n+/g, '\n\n');
+        }
+
+        if (isGtmMode) {
+          finalCode = restoreGTMOutput(finalCode, gtmVars, isWrappedAnonFunc);
         }
 
         outputEditor.setValue(finalCode);
