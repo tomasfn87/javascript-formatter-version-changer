@@ -1,0 +1,19 @@
+{
+  "name": "javascript-formatter-version-changer",
+  "version": "1.0.0",
+  "description": "Ferramenta web para análise de sintaxe, verificação de formatação e downgrade de versão (ESNext, ES5, ES3) de código JavaScript.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "keywords": [
+    "javascript",
+    "formatter",
+    "prettier",
+    "babel",
+    "transpiler",
+    "es5",
+    "es3"
+  ],
+  "license": "MIT"
+}

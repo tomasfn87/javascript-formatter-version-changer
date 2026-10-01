@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GTM/JS Code Analyzer & Beautifier</title>
+
+  <!-- Ícones Open-Source (Font Awesome Free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Fontes Open-Source via Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inconsolata:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&family=Source+Code+Pro:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- CodeMirror CSS Principal -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+
+  <!-- CodeMirror Temas (Dark & Light) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/neo.min.css">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+
+    :root {
+      --bg-page: #1e1e1e;
+      --bg-sidebar: #252526;
+      --text-main: #d4d4d4;
+      --text-muted: #aaa;
+      --border-color: #333;
+      --input-bg: #3c3c3c;
+      --accent-color: #0e639c;
+      --accent-hover: #1177bb;
+      --code-font: 'Fira Code', monospace;
+    }
+
+    body.light-mode {
+      --bg-page: #f4f4f9;
+      --bg-sidebar: #ffffff;
+      --text-main: #222222;
+      --text-muted: #666666;
+      --border-color: #e0e0e0;
+      --input-bg: #ffffff;
+      --accent-color: #007acc;
+      --accent-hover: #005999;
+    }
+
+    body { background-color: var(--bg-page); color: var(--text-main); padding: 20px; transition: background-color 0.3s, color 0.3s; }
+    h1 { margin-bottom: 5px; color: #61dafb; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+    body.light-mode h1 { color: #007acc; }
+    .subtitle { margin-bottom: 20px; color: var(--text-muted); font-size: 0.9rem; }
+
+    .container { display: grid; grid-template-columns: 380px 1fr; gap: 20px; height: calc(100vh - 100px); }
+
+    .sidebar { background: var(--bg-sidebar); padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 15px; overflow-y: auto; transition: background 0.3s; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .section-title { font-size: 0.92rem; color: var(--text-main); margin-top: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+    .section-title i { color: #61dafb; width: 16px; text-align: center; }
+    body.light-mode .section-title i { color: var(--accent-color); }
+
+    label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+    select { padding: 8px 10px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-main); font-size: 0.85rem; cursor: pointer; }
+    select:focus { outline: 1px solid var(--accent-color); }
+
+    .actions-bar { display: flex; gap: 10px; }
+    .btn-primary {
+      flex: 2;
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: background 0.2s ease;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+
+    .btn-swap {
+      flex: 1;
+      background: var(--input-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 0.88rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .btn-swap:hover {
+      background: var(--accent-color);
+      color: #fff;
+      border-color: var(--accent-color);
+    }
+
+    .editor-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .btn-copy {
+      background: var(--input-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-copy:hover {
+      background: var(--accent-color);
+      color: #fff;
+      border-color: var(--accent-color);
+    }
+
+    .editor-section { display: flex; flex-direction: column; gap: 15px; height: 100%; }
+    .status-bar { padding: 12px; border-radius: 6px; font-size: 0.9rem; font-weight: 500; display: none; }
+    .status-bar.success { background: #1b4b27; color: #85e89d; border: 1px solid #28a745; display: block; }
+    .status-bar.error { background: #4b1b1b; color: #ffd1d1; border: 1px solid #dc3545; display: block; }
+    .status-bar.warning { background: #4b3e1b; color: #ffe89d; border: 1px solid #ffc107; display: block; }
+
+    .editors { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; flex-grow: 1; min-height: 0; }
+    .editor-box { display: flex; flex-direction: column; gap: 5px; height: 100%; }
+
+    .CodeMirror,
+    .CodeMirror *,
+    textarea {
+      font-family: var(--code-font) !important;
+      font-size: 0.9rem !important;
+      line-height: 1.5 !important;
+    }
+
+    .CodeMirror {
+      height: 100% !important;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+  </style>
+
+  <!-- Scripts: CodeMirror JS + JS Mode -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+
+  <!-- CDNs do Prettier e Babel -->
+  <script src="https://unpkg.com/prettier@3.2.5/standalone.js"></script>
+  <script src="https://unpkg.com/prettier@3.2.5/plugins/babel.js"></script>
+  <script src="https://unpkg.com/prettier@3.2.5/plugins/estree.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+
+  <h1><i class="fa-solid fa-code"></i> JS Beautifier & Version Changer</h1>
+  <div class="subtitle">Otimizado para Scripts do Google Tag Manager (GTM) e aplicações Web</div>
+
+  <div class="container">
+    <div class="sidebar">
+
+      <!-- Seção I -->
+      <div class="section-title"><i class="fa-solid fa-palette"></i> I) Aparência & Tema</div>
+      <div class="form-group">
+        <label>Esquema de Cores</label>
+        <select id="colorTheme" onchange="updateTheme()">
+          <optgroup label="Escuro (Dark Mode)">
+            <option value="dracula" selected>Dracula (VS Code Dark)</option>
+            <option value="monokai">Monokai</option>
+            <option value="material">Material Dark</option>
+          </optgroup>
+          <optgroup label="Claro (Light Mode)">
+            <option value="eclipse">Eclipse (Light)</option>
+            <option value="neo">Neo White (Light)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fonte do Código (Open-Source)</label>
+        <select id="fontFamily" onchange="updateFont()">
+          <option value="'Fira Code', monospace" selected>Fira Code</option>
+          <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+          <option value="'Roboto Mono', monospace">Roboto Mono</option>
+          <option value="'Source Code Pro', monospace">Source Code Pro</option>
+          <option value="'Inconsolata', monospace">Inconsolata</option>
+          <option value="'Space Mono', monospace">Space Mono</option>
+        </select>
+      </div>
+
+      <!-- Seção II -->
+      <div class="section-title"><i class="fa-solid fa-indent"></i> II) Indentação</div>
+      <div class="form-group">
+        <label>Tamanho e Tipo</label>
+        <select id="indentation">
+          <option value="2">2 Espaços (Padrão JS)</option>
+          <option value="4">4 Espaços</option>
+          <option value="tab">Tabulações (Tabs)</option>
+        </select>
+      </div>
+
+      <!-- Seção III -->
+      <div class="section-title"><i class="fa-solid fa-paragraph"></i> III) Blocos & Espaçamento Vertical</div>
+      <div class="form-group">
+        <label>Pular linha entre blocos de código</label>
+        <select id="blockNewlines">
+          <option value="true" selected>Ativado (Recomendado)</option>
+          <option value="false">Desativado (Manter blocos contínuos)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Limitar linhas vazias contíguas</label>
+        <select id="maxOneEmptyLine">
+          <option value="true" selected>Ativado (Máximo 1 linha vazia)</option>
+          <option value="false">Desativado (Permitir múltiplas linhas vazias)</option>
+        </select>
+      </div>
+
+      <!-- Seção IV -->
+      <div class="section-title"><i class="fa-solid fa-diagram-project"></i> IV) Declaração de Variáveis</div>
+      <div class="form-group">
+        <label>Modernizar var $\rightarrow$ const / let</label>
+        <select id="varModernize">
+          <option value="false" selected>Manter palavras-chave originais (var/let/const)</option>
+          <option value="true">Converter var para const (fixo) e let (mutável)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Estrutura de Agrupamento</label>
+        <select id="varGrouping">
+          <option value="none" selected>Manter original</option>
+          <option value="split">Separar (1 keyword por variável)</option>
+          <option value="group">Agrupar sob mesma keyword</option>
+        </select>
+      </div>
+
+      <!-- Seção V -->
+      <div class="section-title"><i class="fa-solid fa-sliders"></i> V) Estilo Básico</div>
+      <div class="form-group">
+        <label>Aspas</label>
+        <select id="quotes">
+          <option value="single">Aspas Simples (')</option>
+          <option value="double">Aspas Duplas (")</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Ponto e Vírgula</label>
+        <select id="semicolons">
+          <option value="true">Sempre usar (;)</option>
+          <option value="false">Omitir quando possível</option>
+        </select>
+      </div>
+
+      <!-- Seção VI -->
+      <div class="section-title"><i class="fa-solid fa-arrows-left-right-to-line"></i> VI) Largura & Detalhes</div>
+      <div class="form-group">
+        <label>Largura Máxima (Print Width)</label>
+        <select id="printWidth">
+          <option value="80">80 caracteres</option>
+          <option value="100">100 caracteres</option>
+          <option value="120">120 caracteres</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Espaço em Chaves { x: 1 }</label>
+        <select id="bracketSpacing">
+          <option value="true">Sim ({ foo: bar })</option>
+          <option value="false">Não ({foo: bar})</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Vírgula Final (Trailing Comma)</label>
+        <select id="trailingComma">
+          <option value="all">Sempre</option>
+          <option value="es5">Apenas válidas em ES5</option>
+          <option value="none">Nunca</option>
+        </select>
+      </div>
+
+      <!-- Seção VII -->
+      <div class="section-title"><i class="fa-solid fa-bullseye"></i> VII) Versão Target</div>
+      <div class="form-group">
+        <label>Alvo do Babel</label>
+        <select id="jsVersion">
+          <option value="modern">Moderno (ESNext)</option>
+          <option value="es5">ES5 (GTM Legado / IE11)</option>
+          <option value="es3">ES3 (IE8)</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="editor-section">
+      <div class="actions-bar">
+        <button class="btn-primary" onclick="processJavaScript()"><i class="fa-solid fa-wand-magic-sparkles"></i> Formatar</button>
+        <button class="btn-swap" onclick="swapEditors()" title="Mover código da Saída para a Entrada"><i class="fa-solid fa-arrows-rotate"></i> Inverter</button>
+      </div>
+
+      <div id="statusBar" class="status-bar"></div>
+
+      <div class="editors">
+        <div class="editor-box">
+          <div class="editor-header">
+            <label>Código Original:</label>
+            <button class="btn-copy" onclick="copyInput()"><i class="fa-regular fa-copy"></i> Copiar Entrada</button>
+          </div>
+          <textarea id="inputCode"></textarea>
+        </div>
+
+        <div class="editor-box">
+          <div class="editor-header">
+            <label>Código Formatado / Beautified:</label>
+            <button class="btn-copy" onclick="copyOutput()"><i class="fa-regular fa-copy"></i> Copiar Saída</button>
+          </div>
+          <textarea id="outputCode"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let inputEditor, outputEditor;
+
+    function babelPluginAddBlockNewlines({ types: t }) {
+      return {
+        visitor: {
+          BlockStatement(path) { processStatements(path.get('body'), t); },
+          Program(path) { processStatements(path.get('body'), t); }
+        }
+      };
+
+      function isBlockOrMultiline(node) {
+        if (!node) return false;
+        const type = node.type;
+        const blockTypes = [
+          'FunctionDeclaration', 'ClassDeclaration', 'IfStatement',
+          'ForStatement', 'ForInStatement', 'ForOfStatement',
+          'WhileStatement', 'DoWhileStatement', 'TryStatement',
+          'SwitchStatement'
+        ];
+        if (blockTypes.includes(type)) return true;
+        if (type === 'VariableDeclaration' && node.declarations.length > 1) return true;
+        return false;
+      }
+
+      function processStatements(statements, t) {
+        for (let i = 0; i < statements.length - 1; i++) {
+          const current = statements[i].node;
+          const next = statements[i + 1].node;
+
+          if (isBlockOrMultiline(current) || isBlockOrMultiline(next)) {
+            if (!next.leadingComments) {
+              next.leadingComments = [];
+            }
+            const hasMarker = next.leadingComments.some(c => c.value === 'BLOCK_NEWLINE');
+            if (!hasMarker) {
+              next.leadingComments.push({
+                type: 'CommentBlock',
+                value: 'BLOCK_NEWLINE',
+                leading: true
+              });
+            }
+          }
+        }
+      }
+    }
+
+    function babelPluginModernizeVars({ types: t }) {
+      return {
+        visitor: {
+          VariableDeclaration(path) {
+            if (path.node.kind !== 'var') return;
+
+            const isForInit =
+              (path.parentPath.isForStatement() && path.parentKey === 'init') ||
+              path.parentPath.isForInStatement() ||
+              path.parentPath.isForOfStatement();
+
+            if (isForInit) {
+              let isConstant = true;
+              for (const decl of path.node.declarations) {
+                if (t.isIdentifier(decl.id)) {
+                  const binding = path.scope.getBinding(decl.id.name);
+                  if (binding && !binding.constant) {
+                    isConstant = false;
+                  }
+                }
+              }
+              path.node.kind = isConstant ? 'const' : 'let';
+              return;
+            }
+
+            const constDecls = [];
+            const letDecls = [];
+
+            for (const decl of path.node.declarations) {
+              let isConstant = true;
+
+              if (t.isIdentifier(decl.id)) {
+                const binding = path.scope.getBinding(decl.id.name);
+                if (binding && !binding.constant) {
+                  isConstant = false;
+                }
+              }
+
+              if (isConstant) {
+                constDecls.push(decl);
+              } else {
+                letDecls.push(decl);
+              }
+            }
+
+            const newDeclarations = [];
+            if (constDecls.length > 0) newDeclarations.push(t.variableDeclaration('const', constDecls));
+            if (letDecls.length > 0) newDeclarations.push(t.variableDeclaration('let', letDecls));
+
+            if (newDeclarations.length === 1) {
+              path.replaceWith(newDeclarations[0]);
+            } else if (newDeclarations.length > 1) {
+              path.replaceWithMultiple(newDeclarations);
+            }
+          }
+        }
+      };
+    }
+
+    function babelPluginSplitVars({ types: t }) {
+      return {
+        visitor: {
+          VariableDeclaration(path) {
+            if (
+              path.parentPath.isForInStatement() ||
+              path.parentPath.isForOfStatement() ||
+              (path.parentPath.isForStatement() && path.parentKey === 'init')
+            ) {
+              return;
+            }
+            if (path.node.declarations.length > 1) {
+              const kind = path.node.kind;
+              const newDeclarations = path.node.declarations.map(decl =>
+                t.variableDeclaration(kind, [decl])
+              );
+              path.replaceWithMultiple(newDeclarations);
+            }
+          }
+        }
+      };
+    }
+
+    function babelPluginGroupVars({ types: t }) {
+      return {
+        visitor: {
+          BlockStatement(path) { groupInBlock(path); },
+          Program(path) { groupInBlock(path); }
+        }
+      };
+
+      function groupInBlock(path) {
+        const body = path.get('body');
+        for (let i = 0; i < body.length - 1; i++) {
+          const current = body[i];
+          const next = body[i + 1];
+
+          if (
+            current.isVariableDeclaration() &&
+            next.isVariableDeclaration() &&
+            current.node.kind === next.node.kind &&
+            !current.parentPath.isForStatement() &&
+            !next.parentPath.isForStatement()
+          ) {
+            current.node.declarations.push(...next.node.declarations);
+            next.remove();
+            i--;
+          }
+        }
+      }
+    }
+
+    function babelPluginRemoveUnderscorePrefixes() {
+      return {
+        visitor: {
+          Program(path) {
+            path.traverse({
+              VariableDeclarator(p) {
+                if (p.node.id && p.node.id.type === 'Identifier') {
+                  const name = p.node.id.name;
+                  if (/^_[a-zA-Z0-9]+$/.test(name)) {
+                    const cleanName = name.replace(/^_+/, '');
+                    const existingBinding = p.scope.hasBinding(cleanName);
+                    if (!existingBinding || p.scope.getBinding(cleanName) === p.scope.getBinding(name)) {
+                      p.scope.rename(name, cleanName);
+                    }
+                  }
+                }
+              }
+            });
+          }
+        }
+      };
+    }
+
+    async function writePureTextToClipboard(text) {
+      try {
+        const blob = new Blob([text], { type: 'text/plain' });
+        const item = new ClipboardItem({ 'text/plain': blob });
+        await navigator.clipboard.write([item]);
+      } catch (e) {
+        await navigator.clipboard.writeText(text);
+      }
+    }
+
+    function enforcePlainTextCopy(cmInstance) {
+      cmInstance.on('copy', (cm, event) => {
+        const selectedText = cm.getSelection();
+        if (selectedText) {
+          event.preventDefault();
+          if (event.clipboardData) {
+            event.clipboardData.clearData();
+            event.clipboardData.setData('text/plain', selectedText);
+          } else {
+            writePureTextToClipboard(selectedText);
+          }
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const defaultCode = `var idGTM = 'GTM-XXXXX';
+var contador = 0;
+
+function processarGTM() {
+  if (contador === 0) {
+    contador = 1;
+  }
+
+  for (var i = 0; i < 3; i++) {
+    console.log('Iteração: ' + i);
+  }
+
+  return idGTM + '_' + contador;
+}`;
+
+      inputEditor = CodeMirror.fromTextArea(document.getElementById('inputCode'), {
+        mode: 'javascript',
+        theme: 'dracula',
+        lineNumbers: true,
+        lineWrapping: true
+      });
+
+      outputEditor = CodeMirror.fromTextArea(document.getElementById('outputCode'), {
+        mode: 'javascript',
+        theme: 'dracula',
+        lineNumbers: true,
+        readOnly: true,
+        lineWrapping: true
+      });
+
+      enforcePlainTextCopy(inputEditor);
+      enforcePlainTextCopy(outputEditor);
+
+      inputEditor.setValue(defaultCode);
+    });
+
+    async function copyInput() {
+      const code = inputEditor.getValue();
+      if (!code.trim()) {
+        showStatus('Nenhum código na ENTRADA para copiar.', 'warning');
+        return;
+      }
+      await writePureTextToClipboard(code);
+      showStatus('✓ Código de ENTRADA copiado como texto puro!', 'success');
+    }
+
+    async function copyOutput() {
+      const code = outputEditor.getValue();
+      if (!code.trim()) {
+        showStatus('Nenhum código na SAÍDA para copiar.', 'warning');
+        return;
+      }
+      await writePureTextToClipboard(code);
+      showStatus('✓ Código de SAÍDA copiado como texto puro!', 'success');
+    }
+
+    function swapEditors() {
+      const outputCode = outputEditor.getValue();
+      if (!outputCode.trim()) {
+        showStatus('Não há código na saída para inverter.', 'warning');
+        return;
+      }
+      inputEditor.setValue(outputCode);
+      outputEditor.setValue('');
+      showStatus('⇄ Código de saída movido para a entrada!', 'success');
+    }
+
+    function updateFont() {
+      const font = document.getElementById('fontFamily').value;
+      document.documentElement.style.setProperty('--code-font', font);
+      if (inputEditor) inputEditor.refresh();
+      if (outputEditor) outputEditor.refresh();
+    }
+
+    function updateTheme() {
+      const themeSelect = document.getElementById('colorTheme');
+      const selectedTheme = themeSelect.value;
+      const isLight = selectedTheme === 'eclipse' || selectedTheme === 'neo';
+
+      inputEditor.setOption('theme', selectedTheme);
+      outputEditor.setOption('theme', selectedTheme);
+
+      if (isLight) {
+        document.body.classList.add('light-mode');
+      } else {
+        document.body.classList.remove('light-mode');
+      }
+    }
+
+    async function processJavaScript() {
+      const rawCode = inputEditor.getValue();
+
+      if (!rawCode.trim()) {
+        showStatus('Insira código para formatar.', 'warning');
+        outputEditor.setValue('');
+        return;
+      }
+
+      try {
+        Babel.transform(rawCode, { presets: [] });
+      } catch (err) {
+        showStatus(`Sintaxe Inválida! Corrija os erros antes de formatar:\n${err.message}`, 'error');
+        outputEditor.setValue('');
+        return;
+      }
+
+      const blockNewlines = document.getElementById('blockNewlines').value === 'true';
+      const maxOneEmptyLine = document.getElementById('maxOneEmptyLine').value === 'true';
+      const varModernize = document.getElementById('varModernize').value === 'true';
+      const varGrouping = document.getElementById('varGrouping').value;
+      const targetVersion = document.getElementById('jsVersion').value;
+
+      const babelPlugins = [];
+
+      if (blockNewlines) {
+        babelPlugins.push(babelPluginAddBlockNewlines);
+      }
+
+      if (varModernize) {
+        babelPlugins.push(babelPluginModernizeVars);
+      }
+
+      if (varGrouping === 'split') {
+        babelPlugins.push(babelPluginSplitVars);
+      } else if (varGrouping === 'group') {
+        babelPlugins.push(babelPluginGroupVars);
+      }
+
+      babelPlugins.push(babelPluginRemoveUnderscorePrefixes);
+
+      let transformedCode = rawCode;
+
+      try {
+        const presets = [];
+        if (targetVersion === 'es5' || targetVersion === 'es3') {
+          const targets = targetVersion === 'es3' ? 'ie 8' : 'ie 11';
+          presets.push(['env', { targets: targets, modules: false }]);
+          babelPlugins.push('transform-property-literals', 'transform-member-expression-literals');
+        }
+
+        const babelResult = Babel.transform(rawCode, {
+          presets: presets,
+          plugins: babelPlugins
+        });
+        transformedCode = babelResult.code;
+
+        if (blockNewlines) {
+          transformedCode = transformedCode.replace(/\/\*BLOCK_NEWLINE\*\/\s*/g, '\n\n');
+        } else {
+          transformedCode = transformedCode.replace(/\/\*BLOCK_NEWLINE\*\/\s*/g, '');
+        }
+
+      } catch (err) {
+        showStatus(`Erro na transformação do Babel: ${err.message}`, 'error');
+        return;
+      }
+
+      const tabWidth = document.getElementById('indentation').value === 'tab' ? 2 : parseInt(document.getElementById('indentation').value);
+      const useTabs = document.getElementById('indentation').value === 'tab';
+
+      const prettierOptions = {
+        parser: 'babel',
+        plugins: [prettierPlugins.babel, prettierPlugins.estree],
+        tabWidth: tabWidth,
+        useTabs: useTabs,
+        singleQuote: document.getElementById('quotes').value === 'single',
+        semi: document.getElementById('semicolons').value === 'true',
+        printWidth: parseInt(document.getElementById('printWidth').value),
+        bracketSpacing: document.getElementById('bracketSpacing').value === 'true',
+        trailingComma: document.getElementById('trailingComma').value,
+      };
+
+      try {
+        let finalCode = await prettier.format(transformedCode, prettierOptions);
+
+        if (maxOneEmptyLine) {
+          finalCode = finalCode.replace(/\n\s*\n\s*\n+/g, '\n\n');
+        }
+
+        outputEditor.setValue(finalCode);
+        showStatus('Sucesso! Código higienizado e formatado mantendo a estrutura exata de variáveis.', 'success');
+      } catch (err) {
+        showStatus(`Erro interno de formatação do Prettier: ${err.message}`, 'error');
+      }
+    }
+
+    function showStatus(message, type) {
+      const statusBar = document.getElementById('statusBar');
+      statusBar.textContent = message;
+      statusBar.className = `status-bar ${type}`;
+    }
+  </script>
+</body>
+</html>
