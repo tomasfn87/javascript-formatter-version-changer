@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 
 <head>
-  <!-- Google Tag Manager -->
   <script>(function (w, d, s, l, i) {
       w[l] = w[l] || []; w[l].push({
         'gtm.start':
@@ -11,25 +10,18 @@
         j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
           'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
     })(window, document, 'script', 'dataLayer', 'GTM-P8BZ94R6');</script>
-  <!-- End Google Tag Manager -->
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GTM/JS Code Analyzer & Beautifier</title>
-
-  <!-- Ícones Open-Source (Font Awesome Free) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <!-- Fontes Open-Source via Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inconsolata:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&family=Source+Code+Pro:wght@400;600&family=Space+Mono:wght@400;700&display=swap"
     rel="stylesheet">
 
-  <!-- CodeMirror CSS Principal -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-
-  <!-- CodeMirror Temas (Dark & Light) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css">
@@ -37,11 +29,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/neo.min.css">
   <link rel="stylesheet" href="style.css">
 
-  <!-- Scripts: CodeMirror JS + JS Mode -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-
-  <!-- CDNs do Prettier e Babel -->
   <script src="https://unpkg.com/prettier@3.2.5/standalone.js"></script>
   <script src="https://unpkg.com/prettier@3.2.5/plugins/babel.js"></script>
   <script src="https://unpkg.com/prettier@3.2.5/plugins/estree.js"></script>
@@ -49,17 +38,15 @@
 </head>
 
 <body>
-  <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P8BZ94R6" height="0" width="0"
       style="display:none;visibility:hidden"></iframe></noscript>
-  <!-- End Google Tag Manager (noscript) -->
+
   <div class="header-container">
     <div class="header-title-box">
       <h1><i class="fa-solid fa-code"></i> JS Beautifier & Version Changer</h1>
       <div class="subtitle">Otimizado para Scripts do Google Tag Manager (GTM) e aplicações Web</div>
     </div>
 
-    <!-- Botão ON / OFF do GTM no Topo em Destaque -->
     <label class="gtm-top-bar" for="gtmMode">
       <i class="fa-solid fa-tags"></i>
       <span class="gtm-label">GTM JavaScript Mode</span>
@@ -73,7 +60,6 @@
   <div class="container">
     <div class="sidebar">
 
-      <!-- Seção I -->
       <div class="section-title"><i class="fa-solid fa-palette"></i> I) Aparência & Tema</div>
       <div class="form-group">
         <label>Esquema de Cores</label>
@@ -102,7 +88,6 @@
         </select>
       </div>
 
-      <!-- Seção II -->
       <div class="section-title"><i class="fa-solid fa-indent"></i> II) Indentação</div>
       <div class="form-group">
         <label title="Tamanho e Tipo">Tamanho e Tipo</label>
@@ -113,7 +98,6 @@
         </select>
       </div>
 
-      <!-- Seção III -->
       <div class="section-title"><i class="fa-solid fa-paragraph"></i> III) Blocos & Espaçamento Vertical</div>
       <div class="form-group">
         <label title="Pular linha entre blocos de código">Pular linha entre blocos de código</label>
@@ -131,7 +115,6 @@
         </select>
       </div>
 
-      <!-- Seção IV -->
       <div class="section-title"><i class="fa-solid fa-diagram-project"></i> IV) Declaração de Variáveis</div>
       <div class="form-group">
         <label title="Modernizar var | const | let">Modernizar var | const | let</label>
@@ -150,7 +133,6 @@
         </select>
       </div>
 
-      <!-- Seção V -->
       <div class="section-title"><i class="fa-solid fa-sliders"></i> V) Estilo Básico</div>
       <div class="form-group">
         <label title="Aspas">Aspas</label>
@@ -167,7 +149,6 @@
         </select>
       </div>
 
-      <!-- Seção VI -->
       <div class="section-title"><i class="fa-solid fa-arrows-left-right-to-line"></i> VI) Largura & Detalhes</div>
       <div class="form-group">
         <label title="Largura Máxima (Print Width)">Largura Máxima (Print Width)</label>
@@ -193,7 +174,6 @@
         </select>
       </div>
 
-      <!-- Seção VII -->
       <div class="section-title"><i class="fa-solid fa-bullseye"></i> VII) Versão Target</div>
       <div class="form-group">
         <label title="Alvo do Babel">Alvo do Babel</label>
@@ -239,7 +219,6 @@
   <script>
     let inputEditor, outputEditor;
 
-    // Lista de IDs dos controles da UI para salvar/carregar
     const SETTINGS_KEY = 'gtm_formatter_settings';
     const CONTROL_IDS = [
       'gtmMode',
@@ -301,109 +280,45 @@
       });
     }
 
-    function babelPluginAddBlockNewlines({types: t}) {
+    // --- PLUGIN: Agrupar Variáveis Consecutivas do Mesmo Tipo (Iterativo) ---
+    function babelPluginGroupVars({types: t}) {
       return {
         visitor: {
-          BlockStatement(path) {processStatements(path.get('body'), t);},
-          Program(path) {processStatements(path.get('body'), t);}
+          BlockStatement(path) {groupInScope(path);},
+          Program(path) {groupInScope(path);}
         }
       };
 
-      function isBlockOrMultiline(node) {
-        if (!node) return false;
-        const type = node.type;
-        const blockTypes = [
-          'FunctionDeclaration', 'ClassDeclaration', 'IfStatement',
-          'ForStatement', 'ForInStatement', 'ForOfStatement',
-          'WhileStatement', 'DoWhileStatement', 'TryStatement',
-          'SwitchStatement'
-        ];
-        if (blockTypes.includes(type)) return true;
-        if (type === 'VariableDeclaration' && node.declarations.length > 1) return true;
-        return false;
-      }
+      function groupInScope(path) {
+        let changed = false;
 
-      function processStatements(statements, t) {
-        for (let i = 0; i < statements.length - 1; i++) {
-          const current = statements[i].node;
-          const next = statements[i + 1].node;
+        // Executa passagens iterativas no bloco até que nenhuma variável mais possa ser agrupada
+        do {
+          changed = false;
+          const body = path.get('body');
+          if (!body || body.length < 2) break;
 
-          if (isBlockOrMultiline(current) || isBlockOrMultiline(next)) {
-            if (!next.leadingComments) {
-              next.leadingComments = [];
-            }
-            const hasMarker = next.leadingComments.some(c => c.value === 'BLOCK_NEWLINE');
-            if (!hasMarker) {
-              next.leadingComments.push({
-                type: 'CommentBlock',
-                value: 'BLOCK_NEWLINE',
-                leading: true
-              });
+          for (let i = 0; i < body.length - 1; i++) {
+            const current = body[i];
+            const next = body[i + 1];
+
+            // Garante que ambos são declarações de variáveis consecutivas e de mesmo kind (var, const ou let)
+            if (
+              current.isVariableDeclaration() &&
+              next.isVariableDeclaration() &&
+              current.node.kind === next.node.kind
+            ) {
+              current.node.declarations = current.node.declarations.concat(next.node.declarations);
+              next.remove();
+              changed = true;
+              break; // Reinicia a varredura a partir da nova estrutura da AST
             }
           }
-        }
+        } while (changed);
       }
     }
 
-    function babelPluginModernizeVars({types: t}) {
-      return {
-        visitor: {
-          VariableDeclaration(path) {
-            if (path.node.kind !== 'var') return;
-
-            const isForInit =
-              (path.parentPath.isForStatement() && path.parentKey === 'init') ||
-              path.parentPath.isForInStatement() ||
-              path.parentPath.isForOfStatement();
-
-            if (isForInit) {
-              let isConstant = true;
-              for (const decl of path.node.declarations) {
-                if (t.isIdentifier(decl.id)) {
-                  const binding = path.scope.getBinding(decl.id.name);
-                  if (binding && !binding.constant) {
-                    isConstant = false;
-                  }
-                }
-              }
-              path.node.kind = isConstant ? 'const' : 'let';
-              return;
-            }
-
-            const constDecls = [];
-            const letDecls = [];
-
-            for (const decl of path.node.declarations) {
-              let isConstant = true;
-
-              if (t.isIdentifier(decl.id)) {
-                const binding = path.scope.getBinding(decl.id.name);
-                if (binding && !binding.constant) {
-                  isConstant = false;
-                }
-              }
-
-              if (isConstant) {
-                constDecls.push(decl);
-              } else {
-                letDecls.push(decl);
-              }
-            }
-
-            const newDeclarations = [];
-            if (constDecls.length > 0) newDeclarations.push(t.variableDeclaration('const', constDecls));
-            if (letDecls.length > 0) newDeclarations.push(t.variableDeclaration('let', letDecls));
-
-            if (newDeclarations.length === 1) {
-              path.replaceWith(newDeclarations[0]);
-            } else if (newDeclarations.length > 1) {
-              path.replaceWithMultiple(newDeclarations);
-            }
-          }
-        }
-      };
-    }
-
+    // --- PLUGIN: Separar Variáveis (1 keyword por variável) ---
     function babelPluginSplitVars({types: t}) {
       return {
         visitor: {
@@ -427,30 +342,95 @@
       };
     }
 
-    function babelPluginGroupVars({types: t}) {
+  function babelPluginModernizeVars({ types: t }) {
+    return {
+      visitor: {
+        VariableDeclaration(path) {
+          if (path.node.kind !== 'var') return;
+
+          const isForInit =
+            (path.parentPath.isForStatement() && path.parentKey === 'init') ||
+            path.parentPath.isForInStatement() ||
+            path.parentPath.isForOfStatement();
+
+          if (isForInit) {
+            let isConstant = true;
+            for (const decl of path.node.declarations) {
+              if (t.isIdentifier(decl.id)) {
+                const binding = path.scope.getBinding(decl.id.name);
+                if (binding && !binding.constant) {
+                  isConstant = false;
+                }
+              }
+            }
+            path.node.kind = isConstant ? 'const' : 'let';
+            return;
+          }
+
+          const newDeclarations = [];
+
+          for (const decl of path.node.declarations) {
+            let isConstant = true;
+
+            if (t.isIdentifier(decl.id)) {
+              const binding = path.scope.getBinding(decl.id.name);
+              if (binding && !binding.constant) {
+                isConstant = false;
+              }
+            }
+
+            const targetKind = isConstant ? 'const' : 'let';
+            newDeclarations.push(t.variableDeclaration(targetKind, [decl]));
+          }
+
+          if (newDeclarations.length === 1) {
+            path.replaceWith(newDeclarations[0]);
+          } else if (newDeclarations.length > 1) {
+            path.replaceWithMultiple(newDeclarations);
+          }
+        }
+      }
+    };
+  }
+
+    // --- PLUGIN: Inserir Marcadores de Linhas em Branco Entre Blocos ---
+    function babelPluginAddBlockNewlines({types: t}) {
       return {
         visitor: {
-          BlockStatement(path) {groupInBlock(path);},
-          Program(path) {groupInBlock(path);}
+          BlockStatement(path) {processStatements(path.get('body'), t);},
+          Program(path) {processStatements(path.get('body'), t);}
         }
       };
 
-      function groupInBlock(path) {
-        const body = path.get('body');
-        for (let i = 0; i < body.length - 1; i++) {
-          const current = body[i];
-          const next = body[i + 1];
+      function isBlockOrMultiline(node) {
+        if (!node) return false;
+        const type = node.type;
+        const blockTypes = [
+          'FunctionDeclaration', 'ClassDeclaration', 'IfStatement',
+          'ForStatement', 'ForInStatement', 'ForOfStatement',
+          'WhileStatement', 'DoWhileStatement', 'TryStatement',
+          'SwitchStatement'
+        ];
+        return blockTypes.includes(type);
+      }
 
-          if (
-            current.isVariableDeclaration() &&
-            next.isVariableDeclaration() &&
-            current.node.kind === next.node.kind &&
-            !current.parentPath.isForStatement() &&
-            !next.parentPath.isForStatement()
-          ) {
-            current.node.declarations.push(...next.node.declarations);
-            next.remove();
-            i--;
+      function processStatements(statements, t) {
+        for (let i = 0; i < statements.length - 1; i++) {
+          const current = statements[i].node;
+          const next = statements[i + 1].node;
+
+          if (isBlockOrMultiline(current) || isBlockOrMultiline(next)) {
+            if (!next.leadingComments) {
+              next.leadingComments = [];
+            }
+            const hasMarker = next.leadingComments.some(c => c.value === 'BLOCK_NEWLINE');
+            if (!hasMarker) {
+              next.leadingComments.push({
+                type: 'CommentBlock',
+                value: 'BLOCK_NEWLINE',
+                leading: true
+              });
+            }
           }
         }
       }
@@ -505,10 +485,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // 1. Carrega opções salvas no localStorage
       loadSettings();
-
-      // 2. Associa listeners para salvar automaticamente em caso de mudanças
       bindAutoSave();
 
       const defaultCode = `function() {
@@ -543,7 +520,6 @@
 
       inputEditor.setValue(defaultCode);
 
-      // 3. Aplica tema e fonte carregados
       updateTheme();
       updateFont();
     });
@@ -601,43 +577,38 @@
       }
     }
 
+    // --- TRUQUE INTERMEDIÁRIO DAS ASPAS PARA SINTAXE GTM ---
     function sanitizeGTMInput(code) {
-      const gtmVars = [];
       let processedCode = code;
 
-      processedCode = processedCode.replace(/\{\{\s*([\w\s-]+?)\s*\}\}/g, (match, p1) => {
-        const placeholder = `__GTM_VAR_${gtmVars.length}__`;
-        gtmVars.push({placeholder, original: match});
-        return placeholder;
+      // Converte {{nomeVar}} em "{{nomeVar}}" para o Babel processar como String válida
+      processedCode = processedCode.replace(/\{\{[\s\S]*?\}\}/g, (match) => {
+        return `"${match}"`;
       });
 
       let isWrappedAnonFunc = false;
       const trimmed = processedCode.trim();
+
+      // Envolve função anônima com parênteses para a sintaxe ser válida na AST
       if (/^function\s*\(/i.test(trimmed)) {
         processedCode = `(${trimmed})`;
         isWrappedAnonFunc = true;
       }
 
-      return {processedCode, gtmVars, isWrappedAnonFunc};
+      return {processedCode, isWrappedAnonFunc};
     }
 
-    function restoreGTMOutput(code, gtmVars, isWrappedAnonFunc) {
+    function restoreGTMOutput(code, isWrappedAnonFunc) {
       let restoredCode = code;
 
-      for (const item of gtmVars) {
-        restoredCode = restoredCode.split(item.placeholder).join(item.original);
-      }
+      // Remove as aspas ao redor das variáveis {{...}}
+      restoredCode = restoredCode.replace(/['"](\{\{[\s\S]*?\}\})['"]/g, '$1');
 
       if (isWrappedAnonFunc) {
         restoredCode = restoredCode.trim();
 
-        if (restoredCode.startsWith(';')) {
-          restoredCode = restoredCode.slice(1).trim();
-        }
-
-        if (restoredCode.startsWith('(')) {
-          restoredCode = restoredCode.slice(1).trim();
-        }
+        if (restoredCode.startsWith(';')) restoredCode = restoredCode.slice(1).trim();
+        if (restoredCode.startsWith('(')) restoredCode = restoredCode.slice(1).trim();
 
         if (restoredCode.endsWith(');')) {
           restoredCode = restoredCode.slice(0, -2).trim();
@@ -648,7 +619,8 @@
         }
       }
 
-      restoredCode = restoredCode.replace(/\}\s*;/g, '}');
+      // Remove o ponto e vírgula final no fechamento da função }; -> }
+      restoredCode = restoredCode.replace(/\}\s*;$/, '}');
 
       return restoredCode;
     }
@@ -665,13 +637,11 @@
       const isGtmMode = document.getElementById('gtmMode').checked;
 
       let codeToProcess = rawCode;
-      let gtmVars = [];
       let isWrappedAnonFunc = false;
 
       if (isGtmMode) {
         const sanitized = sanitizeGTMInput(rawCode);
         codeToProcess = sanitized.processedCode;
-        gtmVars = sanitized.gtmVars;
         isWrappedAnonFunc = sanitized.isWrappedAnonFunc;
       }
 
@@ -695,14 +665,15 @@
 
       const babelPlugins = [];
 
-      if (blockNewlines) {
-        babelPlugins.push(babelPluginAddBlockNewlines);
-      }
+      // Para ES5 / ES3, forçamos o varModernize como false para manter var
+      const shouldModernize = varModernize && targetVersion !== 'es5' && targetVersion !== 'es3';
 
-      if (varModernize) {
+      // 1. Moderniza var -> const / let primeiro (se aplicável)
+      if (shouldModernize) {
         babelPlugins.push(babelPluginModernizeVars);
       }
 
+      // 2. Agrupa ou separa com base nos tipos já definidos (kind)
       if (varGrouping === 'split') {
         babelPlugins.push(babelPluginSplitVars);
       } else if (varGrouping === 'group') {
@@ -711,6 +682,10 @@
 
       babelPlugins.push(babelPluginRemoveUnderscorePrefixes);
 
+      if (blockNewlines) {
+        babelPlugins.push(babelPluginAddBlockNewlines);
+      }
+
       let transformedCode = codeToProcess;
 
       try {
@@ -718,7 +693,14 @@
         if (targetVersion === 'es5' || targetVersion === 'es3') {
           const targets = targetVersion === 'es3' ? 'ie 8' : 'ie 11';
           presets.push(['env', {targets: targets, modules: false}]);
-          babelPlugins.push('transform-property-literals', 'transform-member-expression-literals');
+          if (typeof Babel !== 'undefined' && Babel.availablePlugins) {
+            if (Babel.availablePlugins['transform-property-literals']) {
+              babelPlugins.push(Babel.availablePlugins['transform-property-literals']);
+            }
+            if (Babel.availablePlugins['transform-member-expression-literals']) {
+              babelPlugins.push(Babel.availablePlugins['transform-member-expression-literals']);
+            }
+          }
         }
 
         const babelResult = Babel.transform(codeToProcess, {
@@ -761,11 +743,11 @@
         }
 
         if (isGtmMode) {
-          finalCode = restoreGTMOutput(finalCode, gtmVars, isWrappedAnonFunc);
+          finalCode = restoreGTMOutput(finalCode, isWrappedAnonFunc);
         }
 
         outputEditor.setValue(finalCode);
-        showStatus('Sucesso! Código higienizado e formatado mantendo a estrutura exata de variáveis.', 'success');
+        showStatus('Sucesso! Código higienizado e formatado.', 'success');
       } catch (err) {
         showStatus(`Erro interno de formatação do Prettier: ${err.message}`, 'error');
       }
@@ -777,6 +759,7 @@
       statusBar.className = `status-bar ${type}`;
     }
   </script>
+
 </body>
 
 </html>
