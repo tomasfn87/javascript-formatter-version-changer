@@ -1,12 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer','GTM-P8BZ94R6');</script>
+  <script>(function (w, d, s, l, i) {
+      w[l] = w[l] || []; w[l].push({
+        'gtm.start':
+          new Date().getTime(), event: 'gtm.js'
+      }); var f = d.getElementsByTagName(s)[0],
+        j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+          'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+    })(window, document, 'script', 'dataLayer', 'GTM-P8BZ94R6');</script>
   <!-- End Google Tag Manager -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +22,9 @@
   <!-- Fontes Open-Source via Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inconsolata:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&family=Source+Code+Pro:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inconsolata:wght@400;700&family=JetBrains+Mono:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&family=Source+Code+Pro:wght@400;600&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
 
   <!-- CodeMirror CSS Principal -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
@@ -41,10 +47,11 @@
   <script src="https://unpkg.com/prettier@3.2.5/plugins/estree.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
+
 <body>
   <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P8BZ94R6"
-  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-P8BZ94R6" height="0" width="0"
+      style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <div class="header-container">
     <div class="header-title-box">
@@ -119,7 +126,8 @@
         <label title="Limitar linhas vazias contíguas">Limitar linhas vazias contíguas</label>
         <select id="maxOneEmptyLine">
           <option value="true" data-value="limit-empty-lines" selected>Ativado (Máximo 1 linha vazia)</option>
-          <option value="false" data-value="limitless-empty-lines">Desativado (Permitir múltiplas linhas vazias)</option>
+          <option value="false" data-value="limitless-empty-lines">Desativado (Permitir múltiplas linhas vazias)
+          </option>
         </select>
       </div>
 
@@ -128,7 +136,8 @@
       <div class="form-group">
         <label title="Modernizar var | const | let">Modernizar var | const | let</label>
         <select id="varModernize">
-          <option value="false" data-value="keep-original-variable-keyword" selected>Manter palavras-chave originais (var/let/const)</option>
+          <option value="false" data-value="keep-original-variable-keyword" selected>Manter palavras-chave originais
+            (var/let/const)</option>
           <option value="true" data-value="use-const-and-let">Converter var para const (fixo) e let (mutável)</option>
         </select>
       </div>
@@ -199,8 +208,10 @@
 
     <div class="editor-section">
       <div class="actions-bar">
-        <button id="format-javascript" class="btn-primary" onclick="processJavaScript()"><i class="fa-solid fa-wand-magic-sparkles"></i> Formatar</button>
-        <button id="send-output-to-input" class="btn-swap" onclick="swapEditors()" title="Mover código da Saída para a Entrada"><i class="fa-solid fa-arrows-rotate"></i> Inverter</button>
+        <button id="format-javascript" class="btn-primary" onclick="processJavaScript()"><i
+            class="fa-solid fa-wand-magic-sparkles"></i> Formatar</button>
+        <button id="send-output-to-input" class="btn-swap" onclick="swapEditors()"
+          title="Mover código da Saída para a Entrada"><i class="fa-solid fa-arrows-rotate"></i> Inverter</button>
       </div>
 
       <div id="statusBar" class="status-bar"></div>
@@ -228,11 +239,73 @@
   <script>
     let inputEditor, outputEditor;
 
-    function babelPluginAddBlockNewlines({ types: t }) {
+    // Lista de IDs dos controles da UI para salvar/carregar
+    const SETTINGS_KEY = 'gtm_formatter_settings';
+    const CONTROL_IDS = [
+      'gtmMode',
+      'colorTheme',
+      'fontFamily',
+      'indentation',
+      'blockNewlines',
+      'maxOneEmptyLine',
+      'varModernize',
+      'varGrouping',
+      'quotes',
+      'semicolons',
+      'printWidth',
+      'bracketSpacing',
+      'trailingComma',
+      'jsVersion'
+    ];
+
+    function saveSettings() {
+      const settings = {};
+      CONTROL_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          settings[id] = el.type === 'checkbox' ? el.checked : el.value;
+        }
+      });
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem(SETTINGS_KEY);
+      if (!saved) return;
+
+      try {
+        const settings = JSON.parse(saved);
+        CONTROL_IDS.forEach(id => {
+          const el = document.getElementById(id);
+          if (el && settings[id] !== undefined) {
+            if (el.type === 'checkbox') {
+              el.checked = settings[id];
+            } else {
+              el.value = settings[id];
+            }
+          }
+        });
+      } catch (e) {
+        console.error('Erro ao carregar configurações do localStorage:', e);
+      }
+    }
+
+    function bindAutoSave() {
+      CONTROL_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('change', () => {
+            saveSettings();
+          });
+        }
+      });
+    }
+
+    function babelPluginAddBlockNewlines({types: t}) {
       return {
         visitor: {
-          BlockStatement(path) { processStatements(path.get('body'), t); },
-          Program(path) { processStatements(path.get('body'), t); }
+          BlockStatement(path) {processStatements(path.get('body'), t);},
+          Program(path) {processStatements(path.get('body'), t);}
         }
       };
 
@@ -272,7 +345,7 @@
       }
     }
 
-    function babelPluginModernizeVars({ types: t }) {
+    function babelPluginModernizeVars({types: t}) {
       return {
         visitor: {
           VariableDeclaration(path) {
@@ -331,7 +404,7 @@
       };
     }
 
-    function babelPluginSplitVars({ types: t }) {
+    function babelPluginSplitVars({types: t}) {
       return {
         visitor: {
           VariableDeclaration(path) {
@@ -354,11 +427,11 @@
       };
     }
 
-    function babelPluginGroupVars({ types: t }) {
+    function babelPluginGroupVars({types: t}) {
       return {
         visitor: {
-          BlockStatement(path) { groupInBlock(path); },
-          Program(path) { groupInBlock(path); }
+          BlockStatement(path) {groupInBlock(path);},
+          Program(path) {groupInBlock(path);}
         }
       };
 
@@ -408,8 +481,8 @@
 
     async function writePureTextToClipboard(text) {
       try {
-        const blob = new Blob([text], { type: 'text/plain' });
-        const item = new ClipboardItem({ 'text/plain': blob });
+        const blob = new Blob([text], {type: 'text/plain'});
+        const item = new ClipboardItem({'text/plain': blob});
         await navigator.clipboard.write([item]);
       } catch (e) {
         await navigator.clipboard.writeText(text);
@@ -432,6 +505,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      // 1. Carrega opções salvas no localStorage
+      loadSettings();
+
+      // 2. Associa listeners para salvar automaticamente em caso de mudanças
+      bindAutoSave();
+
       const defaultCode = `function() {
   var test = {{tester}};
   var idGTM = 'GTM-XXXXX';
@@ -446,14 +525,14 @@
 
       inputEditor = CodeMirror.fromTextArea(document.getElementById('inputCode'), {
         mode: 'javascript',
-        theme: 'dracula',
+        theme: document.getElementById('colorTheme').value || 'dracula',
         lineNumbers: true,
         lineWrapping: true
       });
 
       outputEditor = CodeMirror.fromTextArea(document.getElementById('outputCode'), {
         mode: 'javascript',
-        theme: 'dracula',
+        theme: document.getElementById('colorTheme').value || 'dracula',
         lineNumbers: true,
         readOnly: true,
         lineWrapping: true
@@ -463,6 +542,10 @@
       enforcePlainTextCopy(outputEditor);
 
       inputEditor.setValue(defaultCode);
+
+      // 3. Aplica tema e fonte carregados
+      updateTheme();
+      updateFont();
     });
 
     async function copyInput() {
@@ -508,8 +591,8 @@
       const selectedTheme = themeSelect.value;
       const isLight = selectedTheme === 'eclipse' || selectedTheme === 'neo';
 
-      inputEditor.setOption('theme', selectedTheme);
-      outputEditor.setOption('theme', selectedTheme);
+      if (inputEditor) inputEditor.setOption('theme', selectedTheme);
+      if (outputEditor) outputEditor.setOption('theme', selectedTheme);
 
       if (isLight) {
         document.body.classList.add('light-mode');
@@ -522,14 +605,12 @@
       const gtmVars = [];
       let processedCode = code;
 
-      // 1. Substituir variáveis GTM {{var}} por identificadores válidos
       processedCode = processedCode.replace(/\{\{\s*([\w\s-]+?)\s*\}\}/g, (match, p1) => {
         const placeholder = `__GTM_VAR_${gtmVars.length}__`;
-        gtmVars.push({ placeholder, original: match });
+        gtmVars.push({placeholder, original: match});
         return placeholder;
       });
 
-      // 2. Verificar se inicia com função anônima e envolver com ()
       let isWrappedAnonFunc = false;
       const trimmed = processedCode.trim();
       if (/^function\s*\(/i.test(trimmed)) {
@@ -537,18 +618,16 @@
         isWrappedAnonFunc = true;
       }
 
-      return { processedCode, gtmVars, isWrappedAnonFunc };
+      return {processedCode, gtmVars, isWrappedAnonFunc};
     }
 
     function restoreGTMOutput(code, gtmVars, isWrappedAnonFunc) {
       let restoredCode = code;
 
-      // 1. Restaurar variáveis {{var}}
       for (const item of gtmVars) {
         restoredCode = restoredCode.split(item.placeholder).join(item.original);
       }
 
-      // 2. Remover parênteses e ponto e vírgula final se foi envelopado temporariamente
       if (isWrappedAnonFunc) {
         restoredCode = restoredCode.trim();
 
@@ -557,22 +636,18 @@
         }
 
         if (restoredCode.startsWith('(')) {
-          // Remove parêntese inicial '('
           restoredCode = restoredCode.slice(1).trim();
         }
 
-        // Se o final terminar em ');' ou ')', remove o parêntese e o ';' indesejado
         if (restoredCode.endsWith(');')) {
           restoredCode = restoredCode.slice(0, -2).trim();
         } else if (restoredCode.endsWith(')')) {
           restoredCode = restoredCode.slice(0, -1).trim();
         } else if (restoredCode.endsWith(';')) {
-          // Caso tenha ficado um ';' solto após a remoção do parêntese
           restoredCode = restoredCode.slice(0, -1).trim();
         }
       }
 
-      // 3. Remover ';' acidentais logo após o fechamento de blocos de controle (if, for, while, try, etc.)
       restoredCode = restoredCode.replace(/\}\s*;/g, '}');
 
       return restoredCode;
@@ -601,7 +676,7 @@
       }
 
       try {
-        Babel.transform(codeToProcess, { presets: [] });
+        Babel.transform(codeToProcess, {presets: []});
       } catch (err) {
         let msg = err.message;
         if (isGtmMode) {
@@ -642,7 +717,7 @@
         const presets = [];
         if (targetVersion === 'es5' || targetVersion === 'es3') {
           const targets = targetVersion === 'es3' ? 'ie 8' : 'ie 11';
-          presets.push(['env', { targets: targets, modules: false }]);
+          presets.push(['env', {targets: targets, modules: false}]);
           babelPlugins.push('transform-property-literals', 'transform-member-expression-literals');
         }
 
@@ -703,4 +778,5 @@
     }
   </script>
 </body>
+
 </html>
