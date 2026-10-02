@@ -302,100 +302,100 @@
       <!-- Seção II -->
       <div class="section-title"><i class="fa-solid fa-indent"></i> II) Indentação</div>
       <div class="form-group">
-        <label>Tamanho e Tipo</label>
+        <label title="Tamanho e Tipo">Tamanho e Tipo</label>
         <select id="indentation">
-          <option value="2">2 Espaços (Padrão JS)</option>
-          <option value="4">4 Espaços</option>
-          <option value="tab">Tabulações (Tabs)</option>
+          <option value="2" data-value="indent-2">2 Espaços (Padrão JS)</option>
+          <option value="4" data-value="indent-4">4 Espaços</option>
+          <option value="tab" data-value="indent-tab">Tabulações (Tabs)</option>
         </select>
       </div>
 
       <!-- Seção III -->
       <div class="section-title"><i class="fa-solid fa-paragraph"></i> III) Blocos & Espaçamento Vertical</div>
       <div class="form-group">
-        <label>Pular linha entre blocos de código</label>
+        <label title="Pular linha entre blocos de código">Pular linha entre blocos de código</label>
         <select id="blockNewlines">
-          <option value="true" selected>Ativado (Recomendado)</option>
-          <option value="false">Desativado (Manter blocos contínuos)</option>
+          <option value="true" data-value="skip-line-after-block" selected>Ativado (Recomendado)</option>
+          <option value="false" data-value="never-skip-lines">Desativado (Manter blocos contínuos)</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Limitar linhas vazias contíguas</label>
+        <label title="Limitar linhas vazias contíguas">Limitar linhas vazias contíguas</label>
         <select id="maxOneEmptyLine">
-          <option value="true" selected>Ativado (Máximo 1 linha vazia)</option>
-          <option value="false">Desativado (Permitir múltiplas linhas vazias)</option>
+          <option value="true" data-value="limit-empty-lines" selected>Ativado (Máximo 1 linha vazia)</option>
+          <option value="false" data-value="limitless-empty-lines">Desativado (Permitir múltiplas linhas vazias)</option>
         </select>
       </div>
 
       <!-- Seção IV -->
       <div class="section-title"><i class="fa-solid fa-diagram-project"></i> IV) Declaração de Variáveis</div>
       <div class="form-group">
-        <label>Modernizar var $\rightarrow$ const / let</label>
+        <label title="Modernizar var | const | let">Modernizar var | const | let</label>
         <select id="varModernize">
-          <option value="false" selected>Manter palavras-chave originais (var/let/const)</option>
-          <option value="true">Converter var para const (fixo) e let (mutável)</option>
+          <option value="false" data-value="keep-original-variable-keyword" selected>Manter palavras-chave originais (var/let/const)</option>
+          <option value="true" data-value="use-const-and-let">Converter var para const (fixo) e let (mutável)</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Estrutura de Agrupamento</label>
+        <label title="Estrutura de Agrupamento">Estrutura de Agrupamento</label>
         <select id="varGrouping">
-          <option value="none" selected>Manter original</option>
-          <option value="split">Separar (1 keyword por variável)</option>
-          <option value="group">Agrupar sob mesma keyword</option>
+          <option value="none" data-value="keep-original-variable-keyword-grouping" selected>Manter original</option>
+          <option value="split" data-value="one-variable-keyword-for-each">Separar (1 keyword por variável)</option>
+          <option value="group" data-value="group-variables-with-same-keyword">Agrupar sob mesma keyword</option>
         </select>
       </div>
 
       <!-- Seção V -->
       <div class="section-title"><i class="fa-solid fa-sliders"></i> V) Estilo Básico</div>
       <div class="form-group">
-        <label>Aspas</label>
+        <label title="Aspas">Aspas</label>
         <select id="quotes">
-          <option value="single">Aspas Simples (')</option>
-          <option value="double">Aspas Duplas (")</option>
+          <option value="single" data-value="single-quotes">Aspas Simples (')</option>
+          <option value="double" data-value="double-quotes">Aspas Duplas (")</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Ponto e Vírgula</label>
+        <label title="Ponto e Vírgula">Ponto e Vírgula</label>
         <select id="semicolons">
-          <option value="true">Sempre usar (;)</option>
-          <option value="false">Omitir quando possível</option>
+          <option value="true" data-value="always-use">Sempre usar (;)</option>
+          <option value="false" data-value="skip-when-possible">Omitir quando possível</option>
         </select>
       </div>
 
       <!-- Seção VI -->
       <div class="section-title"><i class="fa-solid fa-arrows-left-right-to-line"></i> VI) Largura & Detalhes</div>
       <div class="form-group">
-        <label>Largura Máxima (Print Width)</label>
+        <label title="Largura Máxima (Print Width)">Largura Máxima (Print Width)</label>
         <select id="printWidth">
-          <option value="80">80 caracteres</option>
-          <option value="100">100 caracteres</option>
-          <option value="120">120 caracteres</option>
+          <option value="80" data-value="max-80-chars">80 caracteres</option>
+          <option value="100" data-value="max-100-chars">100 caracteres</option>
+          <option value="120" data-value="max-120-chars">120 caracteres</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Espaço em Chaves { x: 1 }</label>
+        <label title="Espaço em Chaves { x: 1 }">Espaço em Chaves { x: 1 }</label>
         <select id="bracketSpacing">
-          <option value="true">Sim ({ foo: bar })</option>
-          <option value="false">Não ({foo: bar})</option>
+          <option value="true" data-value="with-bracket-spacing">Sim ({ foo: bar })</option>
+          <option value="false" data-value="no-bracket-spacing">Não ({foo: bar})</option>
         </select>
       </div>
       <div class="form-group">
-        <label>Vírgula Final (Trailing Comma)</label>
+        <label title="Vírgula Final (Trailing Comma)">Vírgula Final (Trailing Comma)</label>
         <select id="trailingComma">
-          <option value="all">Sempre</option>
-          <option value="es5">Apenas válidas em ES5</option>
-          <option value="none">Nunca</option>
+          <option value="all" data-value="always-use-trailing-commas">Sempre</option>
+          <option value="es5" data-value="only-es5-valid-trailing-commas">Apenas válidas em ES5</option>
+          <option value="none" data-value="never-use-trailing-commas">Nunca</option>
         </select>
       </div>
 
       <!-- Seção VII -->
       <div class="section-title"><i class="fa-solid fa-bullseye"></i> VII) Versão Target</div>
       <div class="form-group">
-        <label>Alvo do Babel</label>
+        <label title="Alvo do Babel">Alvo do Babel</label>
         <select id="jsVersion">
-          <option value="modern">Moderno (ESNext)</option>
-          <option value="es5">ES5 (GTM Legado / IE11)</option>
-          <option value="es3">ES3 (IE8)</option>
+          <option value="modern" data-value="es-next">Moderno (ESNext)</option>
+          <option value="es5" data-value="es5">ES5 (GTM Legado / IE11)</option>
+          <option value="es3" data-value="es3">ES3 (IE8)</option>
         </select>
       </div>
 
@@ -404,7 +404,7 @@
     <div class="editor-section">
       <div class="actions-bar">
         <button id="format-javascript" class="btn-primary" onclick="processJavaScript()"><i class="fa-solid fa-wand-magic-sparkles"></i> Formatar</button>
-        <button id=send-output-to-input" class="btn-swap" onclick="swapEditors()" title="Mover código da Saída para a Entrada"><i class="fa-solid fa-arrows-rotate"></i> Inverter</button>
+        <button id="send-output-to-input" class="btn-swap" onclick="swapEditors()" title="Mover código da Saída para a Entrada"><i class="fa-solid fa-arrows-rotate"></i> Inverter</button>
       </div>
 
       <div id="statusBar" class="status-bar"></div>
