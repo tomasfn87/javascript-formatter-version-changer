@@ -280,46 +280,65 @@
       });
     }
 
-    // --- PLUGIN: Agrupar Variáveis Consecutivas do Mesmo Tipo (Iterativo) ---
-    function babelPluginGroupVars({types: t}) {
-      return {
-        visitor: {
-          BlockStatement(path) {groupInScope(path);},
-          Program(path) {groupInScope(path);}
+    // --- FUNÇÃO AUXILIAR DE AGRUPAMENTO (Single-Pass por container) ---
+    function groupDeclarationsInContainer(containerPath, t) {
+      const bodyPaths = containerPath.get('body');
+      if (!bodyPaths || bodyPaths.length < 2) return;
+
+      const newBodyNodes = [];
+      let i = 0;
+
+      while (i < bodyPaths.length) {
+        const currentPath = bodyPaths[i];
+
+        if (!currentPath.isVariableDeclaration()) {
+          newBodyNodes.push(currentPath.node);
+          i++;
+          continue;
         }
-      };
 
-      function groupInScope(path) {
-        let changed = false;
+        const currentKind = currentPath.node.kind;
+        const matchedDeclarators = [...currentPath.node.declarations];
+        let j = i + 1;
 
-        // Executa passagens iterativas no bloco até que nenhuma variável mais possa ser agrupada
-        do {
-          changed = false;
-          const body = path.get('body');
-          if (!body || body.length < 2) break;
-
-          for (let i = 0; i < body.length - 1; i++) {
-            const current = body[i];
-            const next = body[i + 1];
-
-            // Garante que ambos são declarações de variáveis consecutivas e de mesmo kind (var, const ou let)
-            if (
-              current.isVariableDeclaration() &&
-              next.isVariableDeclaration() &&
-              current.node.kind === next.node.kind
-            ) {
-              current.node.declarations = current.node.declarations.concat(next.node.declarations);
-              next.remove();
-              changed = true;
-              break; // Reinicia a varredura a partir da nova estrutura da AST
-            }
+        while (j < bodyPaths.length) {
+          const nextPath = bodyPaths[j];
+          if (
+            nextPath.isVariableDeclaration() &&
+            nextPath.node.kind === currentKind
+          ) {
+            matchedDeclarators.push(...nextPath.node.declarations);
+            j++;
+          } else {
+            break;
           }
-        } while (changed);
+        }
+
+        if (j > i + 1) {
+          const groupedDeclaration = t.variableDeclaration(currentKind, matchedDeclarators);
+          newBodyNodes.push(groupedDeclaration);
+        } else {
+          newBodyNodes.push(currentPath.node);
+        }
+
+        i = j;
       }
+
+      containerPath.node.body = newBodyNodes;
     }
 
-    // --- PLUGIN: Separar Variáveis (1 keyword por variável) ---
-    function babelPluginSplitVars({types: t}) {
+    // --- PLUGIN: Agrupar Variáveis Consecutivas ---
+    function babelPluginGroupVars({ types: t }) {
+      return {
+        visitor: {
+          BlockStatement(path) { groupDeclarationsInContainer(path, t); },
+          Program(path) { groupDeclarationsInContainer(path, t); }
+        }
+      };
+    }
+
+    // --- PLUGIN: Separar Variáveis ---
+    function babelPluginSplitVars({ types: t }) {
       return {
         visitor: {
           VariableDeclaration(path) {
@@ -342,63 +361,113 @@
       };
     }
 
-  function babelPluginModernizeVars({ types: t }) {
-    return {
-      visitor: {
-        VariableDeclaration(path) {
-          if (path.node.kind !== 'var') return;
+    function babelPluginModernizeVars(groupingMode) {
+      return function ({ types: t }) {
+        return {
+          visitor: {
+            Program(path) {
+              path.traverse({
+                VariableDeclaration(varPath) {
+                  if (
+                    varPath.parentPath.isForInStatement() ||
+                    varPath.parentPath.isForOfStatement()
+                  ) {
+                    return;
+                  }
 
-          const isForInit =
-            (path.parentPath.isForStatement() && path.parentKey === 'init') ||
-            path.parentPath.isForInStatement() ||
-            path.parentPath.isForOfStatement();
+                  varPath.node.kind = 'var';
 
-          if (isForInit) {
-            let isConstant = true;
-            for (const decl of path.node.declarations) {
-              if (t.isIdentifier(decl.id)) {
-                const binding = path.scope.getBinding(decl.id.name);
-                if (binding && !binding.constant) {
-                  isConstant = false;
+                  if (varPath.node.declarations.length > 1) {
+                    const standaloneVars = varPath.node.declarations.map(decl =>
+                      t.variableDeclaration('var', [decl])
+                    );
+                    varPath.replaceWithMultiple(standaloneVars);
+                  }
                 }
+              });
+
+              path.scope.crawl();
+
+              path.traverse({
+                VariableDeclaration(varPath) {
+                  const isForInit =
+                    varPath.parentPath.isForStatement() && varPath.parentKey === 'init';
+
+                  if (isForInit) {
+                    let isConstant = true;
+                    for (const decl of varPath.node.declarations) {
+                      if (t.isIdentifier(decl.id)) {
+                        const binding = varPath.scope.getBinding(decl.id.name);
+                        if (binding && (!binding.constant || binding.constantViolations.length > 0)) {
+                          isConstant = false;
+                        }
+                      }
+                    }
+                    varPath.node.kind = isConstant ? 'const' : 'let';
+                    return;
+                  }
+
+                  for (const decl of varPath.node.declarations) {
+                    if (t.isIdentifier(decl.id)) {
+                      const varName = decl.id.name;
+                      const binding = varPath.scope.getBinding(varName);
+
+                      let isConstant = true;
+                      if (binding) {
+                        if (!binding.constant || binding.constantViolations.length > 0) {
+                          isConstant = false;
+                        }
+                      }
+
+                      varPath.node.kind = isConstant ? 'const' : 'let';
+                    }
+                  }
+                }
+              });
+
+              path.scope.crawl();
+
+              if (groupingMode === 'group') {
+                path.traverse({
+                  BlockStatement(bPath) {
+                    groupDeclarationsInContainer(bPath, t);
+                  },
+                  Program(pPath) {
+                    groupDeclarationsInContainer(pPath, t);
+                  }
+                });
+              } else if (groupingMode === 'split') {
+                path.traverse({
+                  VariableDeclaration(varPath) {
+                    if (
+                      varPath.parentPath.isForInStatement() ||
+                      varPath.parentPath.isForOfStatement() ||
+                      (varPath.parentPath.isForStatement() && varPath.parentKey === 'init')
+                    ) {
+                      return;
+                    }
+                    if (varPath.node.declarations.length > 1) {
+                      const kind = varPath.node.kind;
+                      const newDeclarations = varPath.node.declarations.map(decl =>
+                        t.variableDeclaration(kind, [decl])
+                      );
+                      varPath.replaceWithMultiple(newDeclarations);
+                    }
+                  }
+                });
               }
             }
-            path.node.kind = isConstant ? 'const' : 'let';
-            return;
           }
-
-          const newDeclarations = [];
-
-          for (const decl of path.node.declarations) {
-            let isConstant = true;
-
-            if (t.isIdentifier(decl.id)) {
-              const binding = path.scope.getBinding(decl.id.name);
-              if (binding && !binding.constant) {
-                isConstant = false;
-              }
-            }
-
-            const targetKind = isConstant ? 'const' : 'let';
-            newDeclarations.push(t.variableDeclaration(targetKind, [decl]));
-          }
-
-          if (newDeclarations.length === 1) {
-            path.replaceWith(newDeclarations[0]);
-          } else if (newDeclarations.length > 1) {
-            path.replaceWithMultiple(newDeclarations);
-          }
-        }
-      }
-    };
-  }
+        };
+      };
+    }
 
     // --- PLUGIN: Inserir Marcadores de Linhas em Branco Entre Blocos ---
-    function babelPluginAddBlockNewlines({types: t}) {
+    function babelPluginAddBlockNewlines({ types: t }) {
       return {
         visitor: {
-          BlockStatement(path) {processStatements(path.get('body'), t);},
-          Program(path) {processStatements(path.get('body'), t);}
+          BlockStatement(path) { processStatements(path.get('body'), t); },
+          Program(path) { processStatements(path.get('body'), t); }
         }
       };
 
@@ -461,8 +530,8 @@
 
     async function writePureTextToClipboard(text) {
       try {
-        const blob = new Blob([text], {type: 'text/plain'});
-        const item = new ClipboardItem({'text/plain': blob});
+        const blob = new Blob([text], { type: 'text/plain' });
+        const item = new ClipboardItem({ 'text/plain': blob });
         await navigator.clipboard.write([item]);
       } catch (e) {
         await navigator.clipboard.writeText(text);
@@ -581,7 +650,6 @@
     function sanitizeGTMInput(code) {
       let processedCode = code;
 
-      // Converte {{nomeVar}} em "{{nomeVar}}" para o Babel processar como String válida
       processedCode = processedCode.replace(/\{\{[\s\S]*?\}\}/g, (match) => {
         return `"${match}"`;
       });
@@ -589,19 +657,17 @@
       let isWrappedAnonFunc = false;
       const trimmed = processedCode.trim();
 
-      // Envolve função anônima com parênteses para a sintaxe ser válida na AST
       if (/^function\s*\(/i.test(trimmed)) {
         processedCode = `(${trimmed})`;
         isWrappedAnonFunc = true;
       }
 
-      return {processedCode, isWrappedAnonFunc};
+      return { processedCode, isWrappedAnonFunc };
     }
 
     function restoreGTMOutput(code, isWrappedAnonFunc) {
       let restoredCode = code;
 
-      // Remove as aspas ao redor das variáveis {{...}}
       restoredCode = restoredCode.replace(/['"](\{\{[\s\S]*?\}\})['"]/g, '$1');
 
       if (isWrappedAnonFunc) {
@@ -619,7 +685,6 @@
         }
       }
 
-      // Remove o ponto e vírgula final no fechamento da função }; -> }
       restoredCode = restoredCode.replace(/\}\s*;$/, '}');
 
       return restoredCode;
@@ -646,7 +711,7 @@
       }
 
       try {
-        Babel.transform(codeToProcess, {presets: []});
+        Babel.transform(codeToProcess, { presets: [] });
       } catch (err) {
         let msg = err.message;
         if (isGtmMode) {
@@ -665,19 +730,18 @@
 
       const babelPlugins = [];
 
-      // Para ES5 / ES3, forçamos o varModernize como false para manter var
       const shouldModernize = varModernize && targetVersion !== 'es5' && targetVersion !== 'es3';
 
-      // 1. Moderniza var -> const / let primeiro (se aplicável)
+      // 1. Se moderniza, a conversão e o agrupamento/separação rodam integrados na mesma travessia
       if (shouldModernize) {
-        babelPlugins.push(babelPluginModernizeVars);
-      }
-
-      // 2. Agrupa ou separa com base nos tipos já definidos (kind)
-      if (varGrouping === 'split') {
-        babelPlugins.push(babelPluginSplitVars);
-      } else if (varGrouping === 'group') {
-        babelPlugins.push(babelPluginGroupVars);
+        babelPlugins.push(babelPluginModernizeVars(varGrouping));
+      } else {
+        // Caso não modernize (ou seja ES5/ES3), aplica apenas o agrupamento/separação isoladamente
+        if (varGrouping === 'split') {
+          babelPlugins.push(babelPluginSplitVars);
+        } else if (varGrouping === 'group') {
+          babelPlugins.push(babelPluginGroupVars);
+        }
       }
 
       babelPlugins.push(babelPluginRemoveUnderscorePrefixes);
@@ -692,7 +756,7 @@
         const presets = [];
         if (targetVersion === 'es5' || targetVersion === 'es3') {
           const targets = targetVersion === 'es3' ? 'ie 8' : 'ie 11';
-          presets.push(['env', {targets: targets, modules: false}]);
+          presets.push(['env', { targets: targets, modules: false }]);
           if (typeof Babel !== 'undefined' && Babel.availablePlugins) {
             if (Babel.availablePlugins['transform-property-literals']) {
               babelPlugins.push(Babel.availablePlugins['transform-property-literals']);
