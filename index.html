@@ -752,7 +752,7 @@
         restoredCode = restoredCode.split(item.placeholder).join(item.original);
       }
 
-      // 2. Remover parênteses externos se foi envolvido temporariamente
+      // 2. Remover parênteses e ponto e vírgula final se foi envelopado temporariamente
       if (isWrappedAnonFunc) {
         restoredCode = restoredCode.trim();
 
@@ -760,14 +760,24 @@
           restoredCode = restoredCode.slice(1).trim();
         }
 
-        if (restoredCode.startsWith('(') && (restoredCode.endsWith(');') || restoredCode.endsWith(')'))) {
-          const hasEndingSemicolon = restoredCode.endsWith(';');
-          restoredCode = restoredCode.slice(1, hasEndingSemicolon ? -2 : -1).trim();
-          if (hasEndingSemicolon) {
-            restoredCode += ';';
-          }
+        if (restoredCode.startsWith('(')) {
+          // Remove parêntese inicial '('
+          restoredCode = restoredCode.slice(1).trim();
+        }
+
+        // Se o final terminar em ');' ou ')', remove o parêntese e o ';' indesejado
+        if (restoredCode.endsWith(');')) {
+          restoredCode = restoredCode.slice(0, -2).trim();
+        } else if (restoredCode.endsWith(')')) {
+          restoredCode = restoredCode.slice(0, -1).trim();
+        } else if (restoredCode.endsWith(';')) {
+          // Caso tenha ficado um ';' solto após a remoção do parêntese
+          restoredCode = restoredCode.slice(0, -1).trim();
         }
       }
+
+      // 3. Remover ';' acidentais logo após o fechamento de blocos de controle (if, for, while, try, etc.)
+      restoredCode = restoredCode.replace(/\}\s*;/g, '}');
 
       return restoredCode;
     }
