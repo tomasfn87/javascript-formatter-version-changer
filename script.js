@@ -61,7 +61,7 @@ function bindAutoSave() {
     });
 }
 
-// --- FUNÇÃO AUXILIAR DE AGRUPAMENTO (Single-Pass por container) ---
+// --- HELPER DE AGRUPAMENTO DE VARIÁVEIS ---
 function groupDeclarationsInContainer(containerPath, t) {
     const bodyPaths = containerPath.get('body');
     if (!bodyPaths || bodyPaths.length < 2) return;
@@ -108,7 +108,53 @@ function groupDeclarationsInContainer(containerPath, t) {
     containerPath.node.body = newBodyNodes;
 }
 
-// --- PLUGIN: Agrupar Variáveis Consecutivas ---
+// --- PLUGINS BABEL ---
+
+// MEDIDOR DE ESPAÇAMENTO GEOMÉTRICO (COMPATÍVEL COM BABEL TRAVERSE)
+function babelPluginMarkEmptyLines({ types: t }) {
+    return {
+        visitor: {
+            BlockStatement(path) { checkList(path.node.body); },
+            Program(path) { checkList(path.node.body); },
+            SwitchStatement(path) { checkList(path.node.cases); }
+        }
+    };
+
+    function checkList(list) {
+        if (!list || !Array.isArray(list) || list.length < 2) return;
+
+        for (let i = 1; i < list.length; i++) {
+            const prev = list[i - 1];
+            const curr = list[i];
+
+            if (prev && curr && prev.loc && curr.loc) {
+                let firstNodeStart = curr.loc.start.line;
+                if (curr.leadingComments && curr.leadingComments.length > 0) {
+                    firstNodeStart = curr.leadingComments[0].loc.start.line;
+                }
+                let lastNodeEnd = prev.loc.end.line;
+                if (prev.trailingComments && prev.trailingComments.length > 0) {
+                    lastNodeEnd = prev.trailingComments[prev.trailingComments.length - 1].loc.end.line;
+                }
+
+                const gap = firstNodeStart - lastNodeEnd;
+
+                if (gap > 2) {
+                    if (!curr.leadingComments) curr.leadingComments = [];
+                    const hasMarker = curr.leadingComments.some(c => c.value && c.value.startsWith('__GTM_BLANK_'));
+                    if (!hasMarker) {
+                        curr.leadingComments.unshift({
+                            type: 'CommentBlock',
+                            value: `__GTM_BLANK_${gap}__`,
+                            leading: true
+                        });
+                    }
+                }
+            }
+        }
+    }
+}
+
 function babelPluginGroupVars({ types: t }) {
     return {
         visitor: {
@@ -118,7 +164,6 @@ function babelPluginGroupVars({ types: t }) {
     };
 }
 
-// --- PLUGIN: Separar Variáveis ---
 function babelPluginSplitVars({ types: t }) {
     return {
         visitor: {
@@ -210,12 +255,8 @@ function babelPluginModernizeVars(groupingMode) {
 
                     if (groupingMode === 'group') {
                         path.traverse({
-                            BlockStatement(bPath) {
-                                groupDeclarationsInContainer(bPath, t);
-                            },
-                            Program(pPath) {
-                                groupDeclarationsInContainer(pPath, t);
-                            }
+                            BlockStatement(bPath) { groupDeclarationsInContainer(bPath, t); },
+                            Program(pPath) { groupDeclarationsInContainer(pPath, t); }
                         });
                     } else if (groupingMode === 'split') {
                         path.traverse({
@@ -243,7 +284,6 @@ function babelPluginModernizeVars(groupingMode) {
     };
 }
 
-// --- PLUGIN: Inserir Marcadores de Linhas em Branco Entre Blocos ---
 function babelPluginAddBlockNewlines({ types: t }) {
     return {
         visitor: {
@@ -254,14 +294,13 @@ function babelPluginAddBlockNewlines({ types: t }) {
 
     function isBlockOrMultiline(node) {
         if (!node) return false;
-        const type = node.type;
         const blockTypes = [
             'FunctionDeclaration', 'ClassDeclaration', 'IfStatement',
             'ForStatement', 'ForInStatement', 'ForOfStatement',
             'WhileStatement', 'DoWhileStatement', 'TryStatement',
             'SwitchStatement'
         ];
-        return blockTypes.includes(type);
+        return blockTypes.includes(node.type);
     }
 
     function processStatements(statements, t) {
@@ -273,11 +312,11 @@ function babelPluginAddBlockNewlines({ types: t }) {
                 if (!next.leadingComments) {
                     next.leadingComments = [];
                 }
-                const hasMarker = next.leadingComments.some(c => c.value === 'BLOCK_NEWLINE');
+                const hasMarker = next.leadingComments.some(c => c.value === 'GTM_BLOCK_NEWLINE');
                 if (!hasMarker) {
                     next.leadingComments.push({
                         type: 'CommentBlock',
-                        value: 'BLOCK_NEWLINE',
+                        value: 'GTM_BLOCK_NEWLINE',
                         leading: true
                     });
                 }
@@ -309,6 +348,7 @@ function babelPluginRemoveUnderscorePrefixes() {
     };
 }
 
+// --- UTILITÁRIOS DA UI ---
 async function writePureTextToClipboard(text) {
     try {
         const blob = new Blob([text], { type: 'text/plain' });
@@ -339,9 +379,10 @@ document.addEventListener('DOMContentLoaded', () => {
     bindAutoSave();
 
     const defaultCode = `function() {
-  var test = {{tester}};
+  var test = {{minha var do gtm}};
   var idGTM = 'GTM-XXXXX';
   var contador = 0;
+
 
   if (contador === 0) {
     contador = 1;
@@ -350,16 +391,19 @@ document.addEventListener('DOMContentLoaded', () => {
   return test + '_' + idGTM;
 }`;
 
+    const themeSelect = document.getElementById('colorTheme');
+    const initialTheme = themeSelect ? themeSelect.value : 'dracula';
+
     inputEditor = CodeMirror.fromTextArea(document.getElementById('inputCode'), {
         mode: 'javascript',
-        theme: document.getElementById('colorTheme').value || 'dracula',
+        theme: initialTheme,
         lineNumbers: true,
         lineWrapping: true
     });
 
     outputEditor = CodeMirror.fromTextArea(document.getElementById('outputCode'), {
         mode: 'javascript',
-        theme: document.getElementById('colorTheme').value || 'dracula',
+        theme: initialTheme,
         lineNumbers: true,
         readOnly: true,
         lineWrapping: true
@@ -405,8 +449,26 @@ function swapEditors() {
     showStatus('⇄ Código de saída movido para a entrada!', 'success');
 }
 
+function clearInput() {
+    inputEditor.setValue('');
+    showStatus('Entrada limpa.', 'info');
+}
+
+function clearOutput() {
+    outputEditor.setValue('');
+    showStatus('Saída limpa.', 'info');
+}
+
+function clearAll() {
+    inputEditor.setValue('');
+    outputEditor.setValue('');
+    showStatus('Ambos os editores foram limpos.', 'info');
+}
+
 function updateFont() {
-    const font = document.getElementById('fontFamily').value;
+    const fontEl = document.getElementById('fontFamily');
+    if (!fontEl) return;
+    const font = fontEl.value;
     document.documentElement.style.setProperty('--code-font', font);
     if (inputEditor) inputEditor.refresh();
     if (outputEditor) outputEditor.refresh();
@@ -414,6 +476,8 @@ function updateFont() {
 
 function updateTheme() {
     const themeSelect = document.getElementById('colorTheme');
+    if (!themeSelect) return;
+
     const selectedTheme = themeSelect.value;
     const isLight = selectedTheme === 'eclipse' || selectedTheme === 'neo';
 
@@ -427,50 +491,44 @@ function updateTheme() {
     }
 }
 
-// --- TRUQUE INTERMEDIÁRIO DAS ASPAS PARA SINTAXE GTM ---
-function sanitizeGTMInput(code) {
-    let processedCode = code;
+// --- SANITIZAÇÃO E RESTAURAÇÃO GTM (ABORDAGEM CIRÚRGICA) ---
+let gtmVarMap = [];
 
-    processedCode = processedCode.replace(/\{\{[\s\S]*?\}\}/g, (match) => {
-        return `"${match}"`;
+function sanitizeGTMInput(code) {
+    let sanitizedCode = code.trim();
+    let isAnonFunc = false;
+    gtmVarMap = [];
+
+    if (/^function\s*\([^)]*\)\s*\{/.test(sanitizedCode)) {
+        isAnonFunc = true;
+        sanitizedCode = '(' + sanitizedCode + ')';
+    }
+
+    sanitizedCode = sanitizedCode.replace(/\{\{[\s\S]*?\}\}/g, (match) => {
+        const placeholder = `__GTM_VAR_${gtmVarMap.length}__`;
+        gtmVarMap.push(match);
+        return placeholder;
     });
 
-    let isWrappedAnonFunc = false;
-    const trimmed = processedCode.trim();
-
-    if (/^function\s*\(/i.test(trimmed)) {
-        processedCode = `(${trimmed})`;
-        isWrappedAnonFunc = true;
-    }
-
-    return { processedCode, isWrappedAnonFunc };
+    return { sanitizedCode, isAnonFunc };
 }
 
-function restoreGTMOutput(code, isWrappedAnonFunc) {
-    let restoredCode = code;
+function restoreGTMOutput(code, isAnonFunc) {
+    let restoredCode = code.trim();
 
-    restoredCode = restoredCode.replace(/['"](\{\{[\s\S]*?\}\})['"]/g, '$1');
-
-    if (isWrappedAnonFunc) {
-        restoredCode = restoredCode.trim();
-
-        if (restoredCode.startsWith(';')) restoredCode = restoredCode.slice(1).trim();
-        if (restoredCode.startsWith('(')) restoredCode = restoredCode.slice(1).trim();
-
-        if (restoredCode.endsWith(');')) {
-            restoredCode = restoredCode.slice(0, -2).trim();
-        } else if (restoredCode.endsWith(')')) {
-            restoredCode = restoredCode.slice(0, -1).trim();
-        } else if (restoredCode.endsWith(';')) {
-            restoredCode = restoredCode.slice(0, -1).trim();
-        }
+    if (isAnonFunc) {
+        restoredCode = restoredCode.replace(/^\(/, ''); restoredCode = restoredCode.replace(/\)\s*;?\s*$/, '');
     }
 
-    restoredCode = restoredCode.replace(/\}\s*;$/, '}');
+    gtmVarMap.forEach((gtmVar, i) => {
+        const regex = new RegExp(`__GTM_VAR_${i}__`, 'g');
+        restoredCode = restoredCode.replace(regex, gtmVar);
+    });
 
     return restoredCode;
 }
 
+// --- MOTOR PRINCIPAL ---
 async function processJavaScript() {
     const rawCode = inputEditor.getValue();
 
@@ -481,14 +539,13 @@ async function processJavaScript() {
     }
 
     const isGtmMode = document.getElementById('gtmMode').checked;
-
     let codeToProcess = rawCode;
     let isWrappedAnonFunc = false;
 
     if (isGtmMode) {
         const sanitized = sanitizeGTMInput(rawCode);
-        codeToProcess = sanitized.processedCode;
-        isWrappedAnonFunc = sanitized.isWrappedAnonFunc;
+        codeToProcess = sanitized.sanitizedCode;
+        isWrappedAnonFunc = sanitized.isAnonFunc;
     }
 
     try {
@@ -511,13 +568,15 @@ async function processJavaScript() {
 
     const babelPlugins = [];
 
+    if (!maxOneEmptyLine) {
+        babelPlugins.push(babelPluginMarkEmptyLines);
+    }
+
     const shouldModernize = varModernize && targetVersion !== 'es5' && targetVersion !== 'es3';
 
-    // 1. Se moderniza, a conversão e o agrupamento/separação rodam integrados na mesma travessia
     if (shouldModernize) {
         babelPlugins.push(babelPluginModernizeVars(varGrouping));
     } else {
-        // Caso não modernize (ou seja ES5/ES3), aplica apenas o agrupamento/separação isoladamente
         if (varGrouping === 'split') {
             babelPlugins.push(babelPluginSplitVars);
         } else if (varGrouping === 'group') {
@@ -554,19 +613,14 @@ async function processJavaScript() {
         });
         transformedCode = babelResult.code;
 
-        if (blockNewlines) {
-            transformedCode = transformedCode.replace(/\/\*BLOCK_NEWLINE\*\/\s*/g, '\n\n');
-        } else {
-            transformedCode = transformedCode.replace(/\/\*BLOCK_NEWLINE\*\/\s*/g, '');
-        }
-
     } catch (err) {
         showStatus(`Erro na transformação do Babel: ${err.message}`, 'error');
         return;
     }
 
-    const tabWidth = document.getElementById('indentation').value === 'tab' ? 2 : parseInt(document.getElementById('indentation').value);
-    const useTabs = document.getElementById('indentation').value === 'tab';
+    const indentVal = document.getElementById('indentation').value;
+    const useTabs = indentVal === 'tab';
+    const tabWidth = useTabs ? 2 : parseInt(indentVal, 10);
 
     const prettierOptions = {
         parser: 'babel',
@@ -575,7 +629,7 @@ async function processJavaScript() {
         useTabs: useTabs,
         singleQuote: document.getElementById('quotes').value === 'single',
         semi: document.getElementById('semicolons').value === 'true',
-        printWidth: parseInt(document.getElementById('printWidth').value),
+        printWidth: parseInt(document.getElementById('printWidth').value, 10),
         bracketSpacing: document.getElementById('bracketSpacing').value === 'true',
         trailingComma: document.getElementById('trailingComma').value,
     };
@@ -583,23 +637,50 @@ async function processJavaScript() {
     try {
         let finalCode = await prettier.format(transformedCode, prettierOptions);
 
-        if (maxOneEmptyLine) {
-            finalCode = finalCode.replace(/\n\s*\n\s*\n+/g, '\n\n');
+        if (blockNewlines) {
+            finalCode = finalCode.replace(/^[ \t]*\/\*GTM_BLOCK_NEWLINE\*\/\r?\n?/gm, '\n');
+        } else {
+            finalCode = finalCode.replace(/^[ \t]*\/\*GTM_BLOCK_NEWLINE\*\/\r?\n?/gm, '');
+        }
+
+        if (!maxOneEmptyLine) {
+            finalCode = finalCode.replace(/(?:\r?\n)*[ \t]*\/\*__GTM_BLANK_(\d+)__\*\/(?:\r?\n)*/g, (match, count) => {
+                return '\n'.repeat(parseInt(count, 10));
+            });
         }
 
         if (isGtmMode) {
             finalCode = restoreGTMOutput(finalCode, isWrappedAnonFunc);
         }
 
+        if (maxOneEmptyLine) {
+            finalCode = finalCode.replace(/(\r?\n){3,}/g, '\n\n');
+        }
+
         outputEditor.setValue(finalCode);
-        showStatus('Sucesso! Código higienizado e formatado.', 'success');
+        showStatus('Sucesso! Código higienizado, formatado e indentado perfeitamente.', 'success');
     } catch (err) {
         showStatus(`Erro interno de formatação do Prettier: ${err.message}`, 'error');
     }
 }
 
-function showStatus(message, type) {
+// --- NOTIFICAÇÕES E STATUS ---
+let statusTimer = null;
+
+function showStatus(message, type = 'info') {
     const statusBar = document.getElementById('statusBar');
+    if (!statusBar) return;
+
+    if (statusTimer) {
+        clearTimeout(statusTimer);
+    }
+
     statusBar.textContent = message;
-    statusBar.className = `status-bar ${type}`;
+    statusBar.className = `status-bar ${type} show`;
+
+    if (type !== 'error') {
+        statusTimer = setTimeout(() => {
+            statusBar.classList.remove('show');
+        }, 4000);
+    }
 }
